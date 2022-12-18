@@ -13,10 +13,18 @@
           <template v-slot:activator="{ on, attrs }">
             <v-icon v-bind="attrs" v-on="on"> mdi-dots-vertical </v-icon>
           </template>
-          <Ellipsis :selected="item" :type="handleType(item)"></Ellipsis>
+          <Ellipsis
+            :selected="item"
+            :type="handleType(item)"
+            @getTheDataAgain="getTheDataAgain"
+            @showPauseDialog="showPauseDialog"
+          ></Ellipsis>
         </v-menu> </template
     ></v-data-table>
-
+    <!-- pause dialog -->
+    <div>
+      <PauseDialog :showPauseDialog="true" />
+    </div>
     <div v-if="showHistoryDialog">
       <CronHistroy
         :crn_mt_scheduled_job_id="crn_mt_scheduled_job_id"
@@ -31,7 +39,8 @@ import CronFilterVue from "./CronFilter.vue";
 import CronHistroy from "./CronHistory.vue";
 import { getScheduledCronRecords } from "../static/services/scheduledJobs";
 import Ellipsis from "./Ellipsis.vue";
-import { mapGetters } from "vuex";
+import PauseDialog from "./Create/pauseDialog.vue";
+import { mapActions, mapGetters } from "vuex";
 
 export default {
   name: "CronFilter",
@@ -79,6 +88,7 @@ export default {
       items: [],
       showHistoryDialog: false,
       crn_mt_scheduled_job_id: "",
+      pauseDialogFlag: false,
     };
   },
   computed: {
@@ -88,8 +98,9 @@ export default {
     //     searchKeys: "getSerchKeys",
     //   }),
   },
-  components: { CronFilterVue, CronHistroy, Ellipsis },
+  components: { CronFilterVue, CronHistroy, Ellipsis, PauseDialog },
   methods: {
+    ...mapActions(["fetchCronJobsSettings"]),
     async getScheduledJobs(DTO) {
       try {
         let res = await getScheduledCronRecords(DTO);
@@ -133,6 +144,20 @@ export default {
         console.log(error);
       }
     },
+    async getTheDataAgain() {
+      try {
+        await this.getScheduledJobs();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    showPauseDialog() {
+      try {
+        this.pauseDialogFlag = true;
+      } catch (error) {
+        console.log(error);
+      }
+    },
   },
   watch: {
     //   async searchKeys() {
@@ -141,6 +166,7 @@ export default {
     //   },
   },
   mounted() {
+    this.fetchCronJobsSettings();
     this.getScheduledJobs();
   },
 };

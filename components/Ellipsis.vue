@@ -3,13 +3,13 @@
     <v-list elevation="21" dense>
       <!-- running ellipsis --->
       <v-list-item
-        @click="templateActions('updateTemplate', selected)"
-        v-if="this.type == 'running'"
+        @click="scheduledJobAction('updateCronStatus', selected, 'stop')"
+        v-if="this.type == 'running' || this.type == 'paused'"
       >
-        <v-list-item-title>Stopped</v-list-item-title>
+        <v-list-item-title>Stop</v-list-item-title>
       </v-list-item>
       <v-list-item
-        @click="templateActions('updateTemplate', selected)"
+        @click="scheduledJobAction('updateCronStatus', selected, 'pause')"
         v-if="this.type == 'running'"
       >
         <v-list-item-title>Paused</v-list-item-title>
@@ -17,24 +17,17 @@
 
       <!--  Paused ellipsis ------------------->
       <v-list-item
-        @click="templateActions('updateTemplate', selected)"
+        @click="scheduledJobAction('updateCronStatus', selected, 'run')"
         v-if="this.type == 'paused' || this.type == 'stopped'"
       >
         <v-list-item-title> Run</v-list-item-title>
       </v-list-item>
-      <v-list-item
-        @click="templateActions('updateTemplate', selected)"
-        v-if="this.type == 'paused'"
-      >
-        <v-list-item-title>Stop</v-list-item-title>
-      </v-list-item>
 
       <!--ellipsis for all scheduled jobs     ------------>
-      <v-list-item @click="templateActions('Delete', selected)">
+      <v-list-item @click="scheduledJobAction('Delete', selected)">
         <v-list-item-title>Delete</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="templateActions('read', selected)">
-
+      <v-list-item @click="scheduledJobAction('read', selected)">
         <v-list-item-title>Update</v-list-item-title>
       </v-list-item>
     </v-list>
@@ -51,10 +44,10 @@
 // import Swal from "sweetalert2";
 // // import { handleSucessMsg } from "../../static/sharedFunctions/handleSucessMsg";
 // // import { handleErrorMsg } from "../../static/sharedFunctions/handleErrors";
-// import { deleteTemplate, updateTemplate } from "../static/services/edt";
+import { updateCronJobRecord } from "../static/services/scheduledJobs";
 // import { handleSucessMsg } from "../static/sharedFunctions/handleSucessMsg";
 // import { handleErrorMsg } from "../static/sharedFunctions/handleErrors";
-// import { mapMutations, mapGetters } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 
 export default {
   name: "Ellipsis",
@@ -64,21 +57,41 @@ export default {
     return {};
   },
   computed: {
-    // ...mapGetters({
-    //   activeLanguage: "activeLanguage",
-    //   inactiveLanguage: "inactiveLanguage",
-    //   getDataFlag: "getDataAgainFlag",
-    // }),
+    ...mapGetters({
+      // activeLanguage: "activeLanguage",
+      // inactiveLanguage: "inactiveLanguage",
+      status: "getCronStatus",
+    }),
   },
   methods: {
     // ...mapMutations(["SET_GET_DATA_AGAIN_FLAG"]),
     // this function is used to update the notification according to ellipsis (unread,flag,delete ) it takes two parameters (selectedAction as an object ) and selectedNotification also as an object
-    async templateActions(selectedAction, selected) {
+    async scheduledJobAction(selectedAction, selected, state) {
       try {
         let DTO = { id: selected.id };
-        // console.log(DTO, "DTOO",selectedAction,"selectedAction");
-        if (selectedAction === "updateTemplate") {
-          this.$emit("showUpdateDialog", selected.id);
+        let status = "";
+        if (selectedAction === "updateCronStatus") {
+          switch (state) {
+            case "stop":
+              status = this.status.stopped;
+              console.log(status, "getCronStatus");
+              // update the status to stop one will get the value from store (backend)
+              await updateCronJobRecord({ ...DTO, status: status });
+              break;
+            case "run":
+              status = this.status.running;
+              await updateCronJobRecord({ ...DTO, status: status });
+              break;
+            case "pause":
+              status = this.status.paused;
+              await updateCronJobRecord({ ...DTO, status: status });
+              // handle show dialog for pause 
+              this.$emit("showPauseDialog")
+              break;
+
+            default:
+              break;
+          }
         }
 
         if (selectedAction === "Delete") {
@@ -98,28 +111,12 @@ export default {
             handleSucessMsg(status, "Template", "deleted");
           }
         }
-        if (selectedAction == "active") {
-          let [res, status] = await updateTemplate({
-            ...DTO,
-            status: "ACTIVE",
-          });
-          handleSucessMsg(status, "Template", "activated");
-        }
-        if (selectedAction == "inActive") {
-          // console.log("INAAACTIVE");
-          let [res, status] = await updateTemplate({
-            ...DTO,
-            status: "INACTIVE",
-          });
-          handleSucessMsg(status, "Template", "Deactivate");
-        }
-        // emit to store to update in active list
-        this.SET_GET_DATA_AGAIN_FLAG(!this.getDataAgainFlag);
+
         this.$emit("getTheDataAgain");
       } catch (error) {
         console.log(error);
         let [data, status] = error;
-        handleErrorMsg(data.message, status);
+        // handleErrorMsg(data.message, status);
       }
     },
 

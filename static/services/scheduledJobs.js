@@ -36,10 +36,10 @@ const getScheduledHistoryRecords = async (DTO) => {
     throw error;
   }
 };
-const deleteTemplate = async (DTO) => {
+const updateCronJobRecord = async (DTO) => {
   try {
     const { data, status } = await axios.post(
-      "http://localhost:30354/edt/deleteEdTemplate",
+      "http://localhost:50303/cron/scheduledJob/updateScheduledJob",
 
       DTO
     );
@@ -48,15 +48,15 @@ const deleteTemplate = async (DTO) => {
     console.log(error);
   }
 };
-const updateTemplate = async (DTO) => {
+const getSettings = async (DTO) => {
   try {
-    const { data, status } = await axios.post(
-      "http://localhost:30354/edt/updateEdTemplate",
+    const { data }= await axios.post(
+      "http://localhost:50303/cron/setting/getSettings",
 
       DTO
     );
     console.log(data, "data");
-    return [data, status];
+    return data;
   } catch (error) {
     console.log(error);
   }
@@ -89,5 +89,5 @@ const getFeatures = async (DTO) => {
 };
 module.exports = {
   getScheduledCronRecords,
-  getScheduledHistoryRecords,
+  getScheduledHistoryRecords,updateCronJobRecord,getSettings
 };
