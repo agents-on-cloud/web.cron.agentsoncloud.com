@@ -39,7 +39,7 @@ import CronFilterVue from "./CronFilter.vue";
 import CronHistroy from "./CronHistory.vue";
 import { getScheduledCronRecords } from "../static/services/scheduledJobs";
 import Ellipsis from "./Ellipsis.vue";
-import PauseDialog from "./Create/pauseDialog.vue";
+import PauseDialog from "./Create/PauseDialog.vue";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
