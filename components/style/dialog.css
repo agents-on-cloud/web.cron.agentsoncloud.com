@@ -1,0 +1,87 @@
+.v-card__title {
+  font-size: 23.04px !important;
+  color: #194569;
+  font-family: "Roboto";
+  font-weight: bold;
+}
+
+.v-card__text {
+  /* padding: 0 24px 20px; */
+  margin-top: 16px !important;
+}
+
+.dialog_divider {
+  color: #91aec4;
+}
+h4 {
+  color: #194569;
+  font-size: 16px;
+}
+#checkBoxId {
+  position: absolute;
+  bottom: 42%;
+  left: 45%;
+  width: 238px;
+  height: 77px;
+}
+#actionEventBox {
+  position: absolute;
+  left: 45%;
+  bottom: 28%;
+  width: 238px;
+  height: 77px;
+}
+#checkBoxId h4 {
+  position: absolute;
+  top: 14%;
+}
+
+#notificationType {
+  margin-top: 15px;
+  margin-left: -81px;
+}
+#actionEvent {
+  margin-top: -7px;
+  margin-left: 5%;
+}
+.primary_create_btn {
+  background-color: #194569 !important;
+  color: #ffffff !important;
+  font-size: 16px;
+  padding: 2px;
+  z-index: 0;
+  width: 9%;
+  
+  /* background-color: #5f84a2 !important;
+  color: #ffffff !important;
+  font-size: 16px !important;
+
+  margin: 16px 20px 20px 20px !important; */
+}
+.secondry_close_btn {
+  font-size: 14px !important;
+  color: #a1a1a1 !important;
+  font-size: 15px;
+  padding: 2px;
+  margin-right: 12px;
+  width: 9%;
+}
+.v-text-field--outlined >>> fieldset {
+  border-color: #194569;
+    border-width: 2px;
+}
+.sucess_swal {
+  width: 480px !important;
+  height: 270px !important;
+}
+
+.vue__time-picker >>> input.display-time {
+  border: 2px solid #194569 !important;
+  width: 8em !important;
+  height: 2.2em !important;
+  padding: 0.3em 0.5em !important;
+  font-size: 1em !important;
+  margin-top: 17px !important;
+  text-align: center;
+  color: #194569 !important;
+}

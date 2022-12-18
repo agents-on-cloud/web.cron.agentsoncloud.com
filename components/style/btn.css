@@ -1,0 +1,19 @@
+.primary_search_btn {
+    background-color: #194569  !important;
+    margin-top: 24px !important;
+    /* position: absolute;
+    left: 70% !important;
+    top: 9%;    */
+    color: #ffffff !important;
+    font-size: 19px !important;
+  }
+  .secondry_cancel_btn {
+    /* position: absolute;
+    left: 62% !important;
+    top: 9%; */
+    font-size: 19px !important;
+    color: #a1a1a1 !important;    
+    margin-top: 24px !important;
+    margin-right: 20px;
+
+  }
