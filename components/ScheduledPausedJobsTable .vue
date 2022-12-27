@@ -1,27 +1,6 @@
 <template>
   <div class="main">
     <CronFilterVue @searchKeys="searchKeys" />
-    <v-btn class="primary_search_btn btns" @click="createCronFlag = true">
-      <v-icon>mdi-plus</v-icon> CREATE CRON JOB
-    </v-btn>
-    <!-- create -->
-    <div v-if="createCronFlag">
-      <CreateCronDialog
-        :showCreateDialog="createCronFlag"
-        @closeDialog="createCronFlag = false"
-        @getDataAgain="getDataAgain"
-      />
-    </div>
-
-    <!-- Update -->
-    <div v-if="showUpdateFlag">
-      <UpdateCronDialog
-        :showUpdateDialog="showUpdateFlag"
-        @closeDialog="showUpdateFlag = false"
-        @getDataAgain="getDataAgain"
-        :id="id"
-      />
-    </div>
     <v-data-table
       :headers="headers"
       :items="items"
@@ -36,10 +15,9 @@
           </template>
           <Ellipsis
             :selected="item"
-            :type="handleType(item)"
+            type="pausedJob"
             @getTheDataAgain="getTheDataAgain"
             @showPauseDialog="showPauseDialog"
-            @showUpdateDialog="showUpdateDialog"
           ></Ellipsis>
         </v-menu> </template
     ></v-data-table>
@@ -55,7 +33,6 @@
       <CronHistroy
         :crn_mt_scheduled_job_id="crn_mt_scheduled_job_id"
         :showHistory="showHistoryDialog"
-        @closeDialog="showHistoryDialog = false"
       />
     </div>
   </div>
@@ -67,12 +44,10 @@ import CronHistroy from "./CronHistory.vue";
 import { getScheduledCronRecords } from "../static/services/scheduledJobs";
 import Ellipsis from "./Ellipsis.vue";
 import PauseDialog from "./Create/PauseCronDialog.vue";
-import CreateCronDialog from "./Create/CreateCronDialg.vue";
-import UpdateCronDialog from "./Update/UpdateCronDialg.vue";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
-  name: "ScheduledJobsTable",
+  name: "ScheduledPausedJobsTable",
   data() {
     return {
       headers: [
@@ -95,7 +70,7 @@ export default {
         },
         {
           text: "Date",
-          value: "date",
+          value: "createdAt",
           class: "blue1 white--text subtitle",
         },
         {
@@ -118,37 +93,23 @@ export default {
       showHistoryDialog: false,
       crn_mt_scheduled_job_id: "",
       pauseDialogFlag: false,
-      createCronFlag: false,
-      showUpdateFlag: false,
       selectedItem: {},
-      id: "",
     };
   },
   computed: {
-    ...mapGetters({
-      activeLanguage: "activeLanguage",
-      inactiveLanguage: "inactiveLanguage",
-      CronJobsStatus: "getCronJobsStatus",
-    }),
+    //   ...mapGetters({
+    //     activeLanguage: "activeLanguage",
+    //     inactiveLanguage: "inactiveLanguage",
+    //     searchKeys: "getSerchKeys",
+    //   }),
   },
-  components: {
-    CronFilterVue,
-    CronHistroy,
-    Ellipsis,
-    PauseDialog,
-    CreateCronDialog,
-    UpdateCronDialog,
-  },
+  components: { CronFilterVue, CronHistroy, Ellipsis, PauseDialog },
   methods: {
     ...mapActions(["fetchCronJobsSettings"]),
     async getScheduledJobs(DTO) {
       try {
-        let arr = [];
-        let res = await getScheduledCronRecords({ pauseJob: false, ...DTO });
-        res.rows.map((el) => {
-          arr.push({ ...el, date: el.createdAt.split("T")[0] });
-        });
-        this.items = arr;
+        let res = await getScheduledCronRecords({ pauseJob: true });
+        this.items = res.rows;
       } catch (error) {
         console.log(error);
       }
@@ -203,26 +164,11 @@ export default {
         console.log(error);
       }
     },
-    async getDataAgain() {
-      await this.getScheduledJobs();
-    },
-    showUpdateDialog(data) {
-      this.showUpdateFlag = true;
-      console.log(data.id, "daaaaaaaaaaaaaata");
-      this.id = data.id;
-    },
     async searchKeys(data) {
-      console.log(data, "daaaaaaaaaaaaaaaaata");
       let res = await this.getScheduledJobs(data);
-      console.log(res, "daaaaaaaaaaaaaaaaata");
     },
   },
-  watch: {
-    //   async searchKeys() {
-    //     let res = await this.getFileHistories(this.searchKeys);
-    //     console.log(res, "res");
-    //   },
-  },
+  watch: {},
   mounted() {
     this.fetchCronJobsSettings();
     this.getScheduledJobs();
@@ -231,13 +177,8 @@ export default {
 </script>
 
 <style lang="css" scoped>
-@import "../components/style/btn.css";
 .main {
   width: 90%;
   margin: 2%;
-}
-.btns {
-  margin-left: 83%;
-  margin-bottom: 1%;
 }
 </style>

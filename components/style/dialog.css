@@ -15,7 +15,7 @@
 }
 h4 {
   color: #194569;
-  font-size: 16px;
+  font-size: 12px;
 }
 #checkBoxId {
   position: absolute;
@@ -68,7 +68,7 @@ h4 {
 }
 .v-text-field--outlined >>> fieldset {
   border-color: #194569;
-    border-width: 2px;
+    border-width: 1px;
 }
 .sucess_swal {
   width: 480px !important;

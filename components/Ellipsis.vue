@@ -8,6 +8,7 @@
       >
         <v-list-item-title>Stop</v-list-item-title>
       </v-list-item>
+
       <v-list-item
         @click="scheduledJobAction('updateCronStatus', selected, 'pause')"
         v-if="this.type == 'running'"
@@ -23,11 +24,35 @@
         <v-list-item-title> Run</v-list-item-title>
       </v-list-item>
 
+      <!-- pauseJobsEllipsis -->
+      <v-list-item
+        @click="scheduledJobAction('updateCronStatus', selected, 'cancel')"
+        v-if="
+          this.type == 'pausedJob' &&
+          selected.pauseJob &&
+          selected.statusTo == status.paused
+        "
+      >
+        <v-list-item-title>Cancel</v-list-item-title>
+      </v-list-item>
+      <v-list-item
+        @click="
+          scheduledJobAction('updateCronStatus', selected, 'stopScheduled')
+        "
+        v-if="
+          this.type == 'pausedJob' &&
+          selected.pauseJob &&
+          this.selected.body.statusTo.id == this.status.running.id
+        "
+      >
+        <v-list-item-title>Cancel</v-list-item-title>
+      </v-list-item>
+
       <!--ellipsis for all scheduled jobs     ------------>
       <v-list-item @click="scheduledJobAction('Delete', selected)">
         <v-list-item-title>Delete</v-list-item-title>
       </v-list-item>
-      <v-list-item @click="scheduledJobAction('read', selected)">
+      <v-list-item @click="scheduledJobAction('Update', selected)">
         <v-list-item-title>Update</v-list-item-title>
       </v-list-item>
     </v-list>
@@ -41,13 +66,18 @@
 // //   cancelCronJob,
 // // } from "../../static/services/notificationService";
 // // import { formatCreatedDate } from "../../static/sharedFunctions/time";
-// import Swal from "sweetalert2";
+import Swal from "sweetalert2";
 // // import { handleSucessMsg } from "../../static/sharedFunctions/handleSucessMsg";
 // // import { handleErrorMsg } from "../../static/sharedFunctions/handleErrors";
-import { updateCronJobRecord } from "../static/services/scheduledJobs";
-// import { handleSucessMsg } from "../static/sharedFunctions/handleSucessMsg";
+import {
+  updateCronJobRecord,
+  changeCronStatus,
+  deleteScheduledJob,
+} from "../static/services/scheduledJobs";
+import { handleSucessMsg } from "../static/sharedFunctions/handleSucessMsg";
 // import { handleErrorMsg } from "../static/sharedFunctions/handleErrors";
-import { mapMutations, mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
+import { setEngine } from "crypto";
 
 export default {
   name: "Ellipsis",
@@ -64,7 +94,7 @@ export default {
     }),
   },
   methods: {
-    // ...mapMutations(["SET_GET_DATA_AGAIN_FLAG"]),
+    ...mapActions(["fetchCronJobsSettings"]),
     // this function is used to update the notification according to ellipsis (unread,flag,delete ) it takes two parameters (selectedAction as an object ) and selectedNotification also as an object
     async scheduledJobAction(selectedAction, selected, state) {
       try {
@@ -74,26 +104,58 @@ export default {
           switch (state) {
             case "stop":
               status = this.status.stopped;
-              console.log(status, "getCronStatus");
               // update the status to stop one will get the value from store (backend)
               await updateCronJobRecord({ ...DTO, status: status });
               break;
             case "run":
               status = this.status.running;
-              await updateCronJobRecord({ ...DTO, status: status });
+              let changedStatusDTO = {
+                id: selected.id,
+                statusTo: this.status.running,
+                statusFrom: this.status.paused,
+              };
+              await changeCronStatus({ ...DTO, ...changedStatusDTO });
+              break;
+            case "cancel":
+              let confirmmedMsg = await Swal.fire({
+                title: "Are you sure you want To Delete?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!",
+              });
+              if (confirmmedMsg.isConfirmed) {
+                let cancelDTO = {
+                  id: selected.id,
+                  statusTo: this.status.running,
+                  statusFrom: this.status.paused,
+                  cancel: true,
+                };
+                await changeCronStatus({ ...DTO, ...cancelDTO });
+              }
+
               break;
             case "pause":
-              status = this.status.paused;
-              await updateCronJobRecord({ ...DTO, status: status });
-              // handle show dialog for pause 
-              this.$emit("showPauseDialog")
+              // status = this.status.paused;
+              // await updateCronJobRecord({ ...DTO, status: status });
+              // handle show dialog for pause
+              this.$emit("showPauseDialog", this.selected);
               break;
-
+            case "stopScheduled":
+              // will delete paused job the record and update scheduled to run
+              let updateScheduledDTO = {
+                id: selected.body.id,
+                statusTo: this.status.running,
+                statusFrom: this.status.paused,
+              };
+              await changeCronStatus({ ...DTO, ...updateScheduledDTO });
+              break;
             default:
               break;
           }
         }
-
         if (selectedAction === "Delete") {
           let confirmmedMsg = await Swal.fire({
             title: "Are you sure?",
@@ -105,13 +167,15 @@ export default {
             confirmButtonText: "Yes, delete it!",
           });
           if (confirmmedMsg.isConfirmed) {
-            let [res, status] = await deleteTemplate({
+            let res = await deleteScheduledJob({
               ...DTO,
             });
-            handleSucessMsg(status, "Template", "deleted");
+            handleSucessMsg(status, "Cron Job ", "deleted");
           }
         }
-
+        if (selectedAction === "Update") {
+          this.$emit("showUpdateDialog", selected);
+        }
         this.$emit("getTheDataAgain");
       } catch (error) {
         console.log(error);
@@ -119,29 +183,6 @@ export default {
         // handleErrorMsg(data.message, status);
       }
     },
-
-    // this function is used to hide or show (update , stop and delete) icons it validates if the notification date is greater then current date and return a flag
-
-    // validateShowIconsForSpacific() {
-    //   let [currentDay, currentTime] = formatCreatedDate();
-    //   let flag = false;
-
-    //   if (this.selected.startShowDate == currentDay) {
-    //     this.selected.startShowTime > currentTime
-    //       ? (flag = true)
-    //       : (flag = false);
-    //     // this.spacificIconsFlag = flag;
-    //   } else {
-    //     this.selected.startShowDate > currentDay
-    //       ? (flag = true)
-    //       : (flag = false);
-    //   }
-
-    //   this.spacificIconsFlag = flag;
-    // },
-
-    /* this function is used to update the DTO for update notification function according to which key (col in backend should be changed , (unread,flagged)) it takes a key which represent the column in db to be changed or trigged  and it return an object (json {sender: value , reciever: value})
-     */
     updateDTO(key, selected) {
       key = {
         sender:
@@ -163,7 +204,7 @@ export default {
     // },
   },
   mounted() {
-    // this.validateShowIconsForSpacific();
+    this.fetchCronJobsSettings();
   },
 };
 </script>

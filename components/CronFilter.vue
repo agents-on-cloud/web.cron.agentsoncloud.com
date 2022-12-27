@@ -10,16 +10,17 @@
         dense
       ></v-text-field>
     </v-col>
-    <v-col cols="2">
+    <!-- <v-col cols="2">
       <v-autocomplete
         label="Feature"
         v-model="feature"
         outlined
         :items="features"
-        :item-text="`name[${activeLanguage}]`"
+        item-text="name"
         dense
+        item-value="id"
       ></v-autocomplete>
-    </v-col>
+    </v-col> -->
     <v-col cols="2">
       <v-autocomplete
         label="Created By"
@@ -34,8 +35,10 @@
         label="Status"
         v-model="status"
         outlined
-        :items="statusItems"
+        :items="CronJobsStatus"
         dense
+        :item-text="`name[${this.activeLanguage}]`"
+        item-value="id"
       ></v-autocomplete>
     </v-col>
     <v-col cols="2">
@@ -86,93 +89,24 @@
         </v-btn>
       </div>
     </v-col>
-    <!-- <v-col md="1"> -->
-
-    <!-- </v-col
-      > -->
-    <!-- <v-col cols="2">
-        <v-autocomplete
-          label="status"
-          v-model="status"
-          outlined
-          :items="statuses"
-        ></v-autocomplete>
-      </v-col> -->
-    <!-- <v-col cols="2">
-        <v-btn
-          fab
-          dark
-          x-small
-          color="blue1"
-          outlined
-          @click="expand = !expand"
-          class="mt-4"
-        >
-          <v-icon dark v-if="!expand"> mdi-chevron-down </v-icon>
-          <v-icon dark v-else> mdi-chevron-up </v-icon>
-        </v-btn></v-col
-      > -->
-    <!-- <v-row v-if="expand" class="ml-2">
-        <v-col cols="2">
-          <v-menu
-            ref="dueDateFrom"
-            v-model="showDateFlag"
-            :close-on-content-click="false"
-            :return-value.sync="dueDateFrom"
-            transition="scale-transition"
-            offset-y
-            min-width="auto"
-          >
-            <template v-slot:activator="{ on, attrs }">
-              <v-text-field
-                v-model="dueDateFrom"
-                label="Date Range"
-                prepend-inner-icon="mdi-calendar"
-                readonly
-                v-bind="attrs"
-                v-on="on"
-                outlined
-                color="blue1"
-              ></v-text-field>
-            </template>
-            <v-date-picker v-model="dueDateFrom" no-title scrollable range>
-              <v-spacer></v-spacer>
-              <v-btn text color="primary" @click="showDateFlag = false">
-                Cancel
-              </v-btn>
-              <v-btn
-                text
-                color="primary"
-                @click="$refs.dueDateFrom.save(dueDateFrom)"
-              >
-                OK
-              </v-btn>
-            </v-date-picker>
-          </v-menu>
-        </v-col>
-      </v-row> -->
-    <!-- <div class="d-flex">
-   
-   
-      </div> -->
   </v-row>
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
+import { getFeatures } from "../static/services/scheduledJobs";
 
 export default {
   name: "CronFilter",
   data() {
     return {
-      activeLanguage: "en",
       status: "",
       jobName: "",
       feature: "",
       features: [],
       dueDateFrom: [],
       users: [],
-      statusItems:[],
+      statusItems: [],
       createdBy: "",
 
       // flags:
@@ -180,26 +114,30 @@ export default {
       expand: false,
     };
   },
+  computed: {
+    ...mapGetters({
+      activeLanguage: "activeLanguage",
+      inactiveLanguage: "inactiveLanguage",
+      CronJobsStatus: "getCronJobsStatus",
+    }),
+  },
   methods: {
     ...mapMutations(["SET_SEARCH_KEYS"]),
     handleUpdateDTO() {
       try {
         this.searchKeys = {
-          // status: this.status,
+          status: this.status,
+          feature: this.feature,
           language: this.activeLanguage,
           name: this.jobName,
-          body: [
-            { key: "source", value: this.source },
-            { key: "target", value: this.target },
-          ],
-          dueDateFrom:
+          dateFrom:
             this.dueDateFrom.length == 1
               ? this.dueDateFrom[0]
               : this.dueDateFrom[0] < this.dueDateFrom[1]
               ? this.dueDateFrom[0]
               : this.dueDateFrom[1],
 
-          dueDateTO:
+          dateTo:
             this.dueDateFrom.length == 1
               ? this.dueDateFrom[0]
               : this.dueDateFrom[1] > this.dueDateFrom[0]
@@ -207,28 +145,36 @@ export default {
               : this.dueDateFrom[0],
         };
 
-        this.SET_SEARCH_KEYS(this.searchKeys);
-        console.log(
-          this.searchKeys,
-          this.dueDateFrom,
-          "sssssssssssseaaaaaaaaarch"
-        );
+        // this.SET_SEARCH_KEYS(this.searchKeys);
+        this.$emit("searchKeys", this.searchKeys);
       } catch (error) {
         console.log(error.stack);
       }
     },
     resetUpdateDTO() {
       try {
-        // this.status = "";
+        this.status = "";
         this.jobName = "";
-        this.source = {};
-        this.target = {};
+        this.feature = "";
         this.dueDateFrom = [];
-        this.SET_SEARCH_KEYS({});
+        this.$emit("searchKeys", {});
       } catch (error) {
         console.log(error);
       }
     },
+    async getAllFeatures() {
+      let res = await getFeatures();
+      res.rows.map((el) => {
+        this.features.push({
+          id: el.id,
+          name: el.abbreviation,
+        });
+      });
+      // console.log(res, "feeeeeeeeeeeeetaure");
+    },
+  },
+  mounted() {
+    this.getAllFeatures();
   },
 };
 </script>

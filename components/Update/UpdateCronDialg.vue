@@ -1,9 +1,9 @@
 <template>
   <v-row justify="center">
-    <v-dialog v-model="showCreateDialog" persistent max-width="1000px">
+    <v-dialog v-model="showUpdateDialog" persistent max-width="1000px">
       <v-card width="1000">
         <v-card-title>
-          <span class="text-h5 blue1--text">Create Cron Job</span>
+          <span class="text-h5 blue1--text">Update Cron Job</span>
         </v-card-title>
         <v-divider></v-divider>
         <v-card-text>
@@ -18,7 +18,10 @@
               ></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0 mt-n9"
-              ><Repetition @repeation="getRepeation" />
+              ><Repetition
+                @repeation="getRepeation"
+                :intialRepetition="intialRepetition"
+              />
             </v-col>
             <!-- <v-col cols="6" class="py-0">
               <v-autocomplete
@@ -92,15 +95,15 @@ import { mapGetters } from "vuex";
 import {
   getFeatures,
   addscheduledCronJob,
-  getVirtualEnPoints,
+  getScheduledCronRecords,
 } from "../../static/services/scheduledJobs";
 import { validateInputs } from "../../static/sharedFunctions/validation";
-import keyBodyTableVue from "./CreatekeyBodyTable.vue";
+import keyBodyTableVue from "./KeysBodyTableUpdate.vue";
 import Repetition from "./Repetition.vue";
 import { handleSucessMsg } from "../../static/sharedFunctions/handleSucessMsg";
 export default {
-  name: "CreateCronDialog",
-  props: ["showCreateDialog"],
+  name: "UpdateCronDialog",
+  props: ["showUpdateDialog", "id"],
   components: { Repetition, keyBodyTableVue },
   computed: {
     ...mapGetters({
@@ -123,6 +126,7 @@ export default {
     repeation: "",
     description: "",
     body: "",
+    intialRepetition: "",
   }),
   methods: {
     async getAllFeatures() {
@@ -154,9 +158,8 @@ export default {
             [this.activeLanguage]: this.description,
             [this.inactiveLanguage]: "",
           },
-          endPoint: this.endPoint
-            ? this.endPoint
-            : "http://localhost:50303/cron/scheduledJob/test",
+          feature: this.feature,
+          endPoint: this.endPoint ? this.endPoint : "cron/test",
           repetition: this.repeation,
           body: this.body,
           status: this.status.running,
@@ -164,13 +167,16 @@ export default {
         let validation = validateInputs({
           name: cronBody.name[this.activeLanguage],
           description: cronBody.description[this.activeLanguage],
+          feature: cronBody.feature,
           endPoint: cronBody.endPoint,
           repeation: cronBody.repetition,
           body: this.body,
         });
         if (validation[0]) {
           console.log("now we can create", cronBody);
+
           [res, status] = await addscheduledCronJob(cronBody);
+
           handleSucessMsg(status, "Cron Job", "created");
           this.$emit("closeDialog");
         } else {
@@ -201,6 +207,26 @@ export default {
         console.log(error);
       }
     },
+    async getInitData() {
+      try {
+        let res = await getScheduledCronRecords({ ids: [this.id] });
+        console.log(res.rows[0], "inttttttialData");
+        let intial = res.rows[0];
+        this.name = intial.name[this.activeLanguage];
+        this.feature = intial.feature;
+        this.endPoint = intial.endPoint;
+        this.body = JSON.stringify(intial.body);
+
+        // emit to children :
+        // 1. repeation:
+        this.intialRepetition = {
+          description: intial?.description[this.activeLanguage],
+          repeation: intial.repetition,
+        };
+      } catch (error) {
+        console.log(error);
+      }
+    },
     async getAllVirtyualEndPoints() {
       try {
         let res = await getVirtualEnPoints();
@@ -213,8 +239,14 @@ export default {
     },
   },
   mounted() {
-    // this.getAllFeatures();
+    this.getAllFeatures();
+    this.getInitData();
     this.getAllVirtyualEndPoints();
+  },
+  watch: {
+    async id() {
+      await this.getInitData();
+    },
   },
 };
 </script>

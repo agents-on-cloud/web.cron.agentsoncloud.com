@@ -9,11 +9,15 @@
     >
       <v-tabs-slider></v-tabs-slider>
       <v-tab id="tab"><p>SCHEDULED JOBS</p> </v-tab>
+      <v-tab id="tab"><p>PAUSED JOBS</p> </v-tab>
     </v-tabs>
 
     <v-tabs-items v-model="tab">
       <v-tab-item>
         <ScheduledJobsTable />
+      </v-tab-item>
+      <v-tab-item>
+        <ScheduledPausedJobsTable />
       </v-tab-item>
     </v-tabs-items>
   </div>
@@ -21,11 +25,12 @@
 
 <script>
 import ScheduledJobsTable from "./ScheduledJobsTable.vue";
+import ScheduledPausedJobsTable from "./ScheduledPausedJobsTable .vue";
 export default {
   name: "CronTabs",
   components: {
-   
     ScheduledJobsTable,
+    ScheduledPausedJobsTable,
   },
   data() {
     return {
