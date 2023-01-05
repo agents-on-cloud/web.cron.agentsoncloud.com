@@ -301,10 +301,7 @@ export default {
           return el.key;
         });
         let date = `${[...this.repetition.month]}-${[...dayOfMonth]}`;
-        let repeation = this.createReption(
-          date,
-          this.repetition.dayOfWeek
-        );
+        let repeation = this.createReption(date, this.repetition.dayOfWeek);
         repeation = `${this.timesRepeation} ${[...repeation]}`;
         this.$emit("repeation", {
           repeation,
@@ -438,9 +435,19 @@ export default {
     },
     handleIntialDate(date, expression) {
       try {
-
+        console.log(date, "daaaaaaaaaaaaaaate");
         let formatedDate = date;
-        if (date.length == 1) {
+
+        if (date == "*") {
+          if (expression == "dayOfMonth") {
+            let obj = {
+              key: "",
+              name: "",
+            };
+            formatedDate = { ...obj };
+          }
+          return [formatedDate];
+        } else if (date.length == 1) {
           if (expression == "dayOfMonth") {
             let obj = {
               key: date,
@@ -689,9 +696,12 @@ export default {
     },
     "repetition.dayOfMonth"() {
       let arr = [];
-      this.repetition.dayOfMonth.map((el) => {
-        arr.push(`${el.name} `);
-      });
+      if (this.repetition.dayOfMonth !== "*") {
+        this.repetition.dayOfMonth.map((el) => {
+          arr.push(`${el.name} `);
+        });
+      }
+
       this.dayOfMonthDescription = arr;
       this.repetition.description = `${this.cronMsg} on ${this.dayDescription} ${this.dayOfMonthDescription} in ${this.monthDescription} ${this.timesDescription}`;
     },

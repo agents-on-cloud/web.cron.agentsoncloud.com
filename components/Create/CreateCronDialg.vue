@@ -128,7 +128,6 @@ export default {
     async getAllFeatures() {
       try {
         let res = await getFeatures();
-        console.log(res, "ressssss");
         for (let i = 0; i < res.rows.length; i++) {
           const element = res.rows[i];
           this.features.push({
@@ -158,7 +157,7 @@ export default {
             ? this.endPoint
             : "http://localhost:50303/cron/scheduledJob/test",
           repetition: this.repeation,
-          body: this.body,
+          body: JSON.parse(this.body),
           status: this.status.running,
         };
         let validation = validateInputs({
@@ -196,7 +195,7 @@ export default {
         data.map((el) => {
           return (body[el.key] = el.value);
         });
-        this.body = body;
+        this.body = JSON.stringify(body);
       } catch (error) {
         console.log(error);
       }

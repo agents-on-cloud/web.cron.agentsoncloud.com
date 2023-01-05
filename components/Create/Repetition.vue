@@ -1,8 +1,8 @@
 <template>
   <div class="d-flex">
     <v-col cols="6">
-      <v-row class="py-0 my-0"
-        ><v-col cols="4" class="py-0 my-0">
+      <v-row class="py-0 my-0">
+        <v-col cols="4" class="py-0 my-0">
           <v-checkbox
             label="Day of week"
             class="my-0"
@@ -39,6 +39,8 @@
             dense
             multiple
             :disabled="!monthFlag"
+            item-text="value"
+            return-object
           ></v-autocomplete> </v-col
       ></v-row>
       <v-row class="py-0 my-0"
@@ -86,10 +88,10 @@
                 @input="
                   timeExpression(exactTime.hours, 'hours', time.hoursRange)
                 "
+                min="0"
               ></v-autocomplete
             ></v-col>
             <v-col cols="4">
-              {{ time.hoursRange[0] }}
               <v-text-field
                 outlined
                 required
@@ -144,6 +146,7 @@
                 dense
                 :disabled="!minsFlag"
                 @input="timeExpression(exactTime.mins, 'mins', time.minsRange)"
+                min="0"
               ></v-autocomplete
             ></v-col>
             <v-col cols="4">
@@ -203,6 +206,7 @@
                     time.secondsRange
                   )
                 "
+                min="0"
               ></v-autocomplete
             ></v-col>
             <v-col cols="4">
@@ -299,20 +303,28 @@ export default {
       },
       errorMessages: {},
       listed: ["Every", "At", "From-To"],
-      days: ["Sunday", "Monday"],
+      days: [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ],
       months: [
-        "January",
-        "Febuary",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "Novmber",
-        "December",
+        { key: 1, value: "January" },
+        { key: 2, value: "Febuary" },
+        // "March",
+        // "April",
+        // "May",
+        // "June",
+        // "July",
+        // "August",
+        // "September",
+        // "October",
+        // "Novmber",
+        // "December",
       ],
       daysOfMonth: [],
       timesDescription: " every second",
@@ -344,14 +356,21 @@ export default {
         let dayOfMonth = this.repetition.dayOfMonth.map((el) => {
           return el.key;
         });
+        let keysOfMonth = this.repetition.month.map((el) => {
+          return el.key;
+        });
         let time = `${hours}:${mins}:${seconds}`;
-        let date = `${[...this.repetition.month]}-${[...dayOfMonth]}`;
+        let date = `${[...keysOfMonth]}-${[...dayOfMonth]}`;
         let repeation = this.createReption(
           date,
           time,
           this.repetition.dayOfWeek
         );
-        repeation = `${this.timesRepeation} ${[...repeation]}`;
+        if (!this.timesRepeation) {
+          repeation = `* * * * ${[...repeation]}`;
+        } else {
+          repeation = `${this.timesRepeation} ${[...repeation]}`;
+        }
         this.$emit("repeation", {
           repeation,
           description: this.repetition.description,
@@ -401,31 +420,7 @@ export default {
     updateHourRange(model) {
       this.time[model][1] = this.time[model][0];
     },
-    getIndecationPreposition(word, timeExpression) {
-      try {
-        let expression = timeExpression;
-        if (word === "At") return;
 
-        if (word == "Every") {
-          switch (timeExpression) {
-            case "hour":
-              expression = "hour";
-              break;
-            case "min":
-              expression = "minutes";
-              break;
-            case "second":
-              expression = "second";
-              break;
-            default:
-              break;
-          }
-          return expression;
-        }
-      } catch (error) {
-        throw new Error(error);
-      }
-    },
     generateTimeDesc() {
       try {
         this.repetition.description = `${this.cronMsg} on ${this.dayDescription} ${this.dayOfMonthDescription} in ${this.monthDescription} ${this.timesDescription}`;
@@ -449,7 +444,6 @@ export default {
         throw new Error(error);
       }
     },
-
     /////////////////// new thinking :
     handleTime(time, expression) {
       try {
@@ -468,75 +462,88 @@ export default {
         let toMin = "00";
         let toSec = "00";
         let everyArr = [];
+        if (splitSec) {
+          if (splitSec.includes("/")) {
+            formatedTime = splitSec.split("/*")[1];
 
-        if (splitSec.includes("/")) {
-          formatedTime = splitSec.split("/")[1];
+            everyArr.push("every " + formatedTime + "seconds");
+          } else if (splitSec.includes("-")) {
+            fromSec = splitSec.split("-")[0];
+            toSec = splitSec.split("-")[1];
+            fromSec.length == 1 && (fromSec = `0${fromSec}`);
+            toSec.length == 1 && (toSec = `0${toSec}`);
 
-          everyArr.push("every " + formatedTime + "seconds");
+            sec = fromSec;
+          } else if (splitSec == "*") {
+            sec = "0";
+            everyArr.push(" every " + "1" + "second");
+          } else if (splitSec !== "*") {
+            splitSec.length == 1 && (splitSec = `0${splitSec}`);
+
+            sec = splitSec;
+          }
         }
-        if (splitSec.includes("-")) {
-          fromSec = splitSec.split("-")[0];
-          toSec = splitSec.split("-")[1];
-          sec = fromSec;
-          // toH = fromH;
-          // toMin = fromM;
+        if (splitMin) {
+          if (splitMin.includes("/")) {
+            formatedTime = splitMin.split("/*")[1];
+
+            everyArr.push(" every " + formatedTime + " minutes");
+          } else if (splitMin.includes("-")) {
+            fromM = splitMin.split("-")[0];
+            toMin = splitMin.split("-")[1];
+            fromM.length == 1 && (fromM = `0${fromM}`);
+            toMin.length == 1 && (toMin = `0${toMin}`);
+            min = fromM;
+          } else if (splitMin == "*") {
+            min = "0";
+            everyArr.push(" every " + "1" + " minute");
+          } else if (splitMin !== "*") {
+            splitMin.length == 1 && (splitMin = `0${splitMin}`);
+
+            min = splitMin;
+          }
+        }
+        if (splitH) {
+          if (splitH.includes("/")) {
+            formatedTime = splitH.split("/*")[1];
+            everyArr.push(" every " + formatedTime + " hours");
+          } else if (splitH.includes("-")) {
+            fromH = splitH.split("-")[0];
+            toH = splitH.split("-")[1];
+            fromH.length == 1 && (fromH = `0${fromH}`);
+            toH.length == 1 && (toH = `0${toH}`);
+
+            hour = fromH;
+          } else if (splitH == "*") {
+            hour = "0";
+            everyArr.push(" every " + "1" + "hour");
+          } else if (splitH !== "*") {
+            splitH.length == 1 && (splitH = `0${splitH}`);
+            hour = splitH;
+          }
         }
 
-        if (splitSec == "*") {
-          sec = "0";
-          everyArr.push(" every " + "1" + "second");
-        }
-        if (splitSec !== "*") {
-          sec = splitSec;
-        }
-        if (splitMin.includes("/")) {
-          formatedTime = splitMin.split("/")[1];
-
-          everyArr.push(" every " + formatedTime + " minutes");
-        }
-        if (splitMin.includes("-")) {
-          fromM = splitMin.split("-")[0];
-          toMin = splitMin.split("-")[1];
-          // toH = fromH;
-          // toSec = fromSec;
-          min = fromM;
-        }
-
-        if (splitMin == "*") {
-          min = "0";
-          everyArr.push(" every " + "1" + " minute");
-        }
-        if (splitMin !== "*") {
-          min = splitMin;
-        }
-        if (splitH.includes("/")) {
-          formatedTime = splitH.split("/")[1];
-          everyArr.push(" every " + formatedTime + " hours");
-        }
-        if (splitH.includes("-")) {
-          fromH = splitH.split("-")[0];
-          toH = splitH.split("-")[1];
-          hour = fromH;
-          // toMin = fromM;
-          // toSec = fromSec;
-        }
-
-        if (splitH == "*") {
-          hour = "0";
-          everyArr.push(" every " + "1" + "hour");
-        }
-        if (splitH !== "*") {
-          hour = splitH;
-        }
         let exactTime = `${hour} : ${min} :${sec} O'clock`;
         let timeFrom = `${fromH} : ${fromM} :${fromSec} O'clock`;
         let timeTo = `${toH} : ${toMin} :${toSec} O'clock`;
 
         if (timeFrom !== "00 : 00 :00 O'clock") {
-          description.push(`from ${exactTime}`);
+          if (
+            hour !== "undefined" &&
+            min !== "undefined" &&
+            sec !== "undefined"
+          ) {
+            description.push(` from ${exactTime} `);
+          }
         }
         if (timeTo !== "00 : 00 :00 O'clock") {
-          description.push(`to ${timeTo}`);
+          if (
+            hour !== "undefined" &&
+            min !== "undefined" &&
+            sec !== "undefined"
+          ) {
+            description.push(` to ${timeTo} `);
+          }
         }
         if (everyArr.length) {
           description.push(` ${everyArr}`);
@@ -545,11 +552,17 @@ export default {
           exactTime !== "00 : 00 :00 O'clock" &&
           timeFrom == "00 : 00 :00 O'clock"
         ) {
-          description.push(`at ${exactTime}`);
+          if (
+            hour !== "undefined" &&
+            min !== "undefined" &&
+            sec !== "undefined"
+          ) {
+            description.push(` at ${exactTime}`);
+          }
         }
 
         // let description = [`at ${exactTime} ${timeFrom} ${timeTo}`, ...everyArr];
-        // console.log(description, "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+        console.log(description, "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         return description;
       } catch (error) {
         console.log(error);
@@ -566,12 +579,10 @@ export default {
     timeExpression(exactExpression, expression, time) {
       try {
         let TimeRepeation = `${this.seconds} ${this.mins} ${this.hours}`;
-
         if (exactExpression == "At") {
           switch (expression) {
             case "hours":
               this.hours = time[0];
-              console.log(this.hours, "hoooooooooooooooooours");
               TimeRepeation = `${this.seconds} ${this.mins} ${this.hours}`;
               break;
             case "mins":
@@ -589,15 +600,15 @@ export default {
         } else if (exactExpression == "Every") {
           switch (expression) {
             case "hours":
-              this.hours = `/${time[0]}`;
+              this.hours = `/*${time[0]}`;
               TimeRepeation = `${this.seconds} ${this.mins} ${this.hours}`;
               break;
             case "mins":
-              this.mins = `/${time[0]}`;
+              this.mins = `/*${time[0]}`;
               TimeRepeation = `${this.seconds} ${this.mins} ${this.hours}`;
               break;
             case "seconds":
-              this.seconds = `/${time[0]}`;
+              this.seconds = `/*${time[0]}`;
               TimeRepeation = `${this.seconds} ${this.mins} ${this.hours}`;
               break;
 
@@ -624,7 +635,6 @@ export default {
               break;
           }
         }
-        console.log(TimeRepeation, "TimeRepeation");
         let desc = this.handleTime(TimeRepeation);
         this.timesRepeation = TimeRepeation;
         this.timesDescription = [...desc];
@@ -639,7 +649,12 @@ export default {
       this.repetition.description = `${this.cronMsg} on ${this.dayDescription} ${this.dayOfMonthDescription} in ${this.monthDescription}  ${this.timesDescription}`;
     },
     "repetition.month"() {
-      this.monthDescription = this.repetition.month;
+      let arr = [];
+      this.repetition.month.map((el) => {
+        arr.push(`${el.value} `);
+      });
+      this.monthDescription = arr;
+      // this.monthDescription = this.repetition.month;
       this.repetition.description = `${this.cronMsg} on ${this.dayDescription} ${this.dayOfMonthDescription}  in ${this.monthDescription}  ${this.timesDescription}`;
     },
     "repetition.dayOfMonth"() {
