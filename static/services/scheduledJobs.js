@@ -71,15 +71,15 @@ const updateCronJobRecord = async (DTO) => {
 };
 const getSettings = async (DTO) => {
   try {
-    const { data } = await axios.post(
-      "http://localhost:50303/cron/setting/getSettings",
+    // const { data } = await axios.post(
+    //   "http://localhost:50303/cron/setting/getSettings",
 
-      DTO
-    );
-    // const { data } = await window.$nuxt.$axios({
-    //   path: "/cron/setting/getSettings",
-    //   data: DTO,
-    // });
+    //   DTO
+    // );
+    const { data } = await window.$nuxt.$axios({
+      path: "/cron/setting/getSettings",
+      data: DTO,
+    });
     return data;
   } catch (error) {
     console.log(error);
@@ -92,7 +92,7 @@ const addscheduledCronJob = async (DTO) => {
 
     //   DTO
     // );
-    const { data,status } = await window.$nuxt.$axios({
+    const { data, status } = await window.$nuxt.$axios({
       path: "/cron/scheduledJob/createScheduledJob",
       data: DTO,
     });
@@ -132,12 +132,14 @@ const getFeatures = async (DTO) => {
 };
 const getVirtualEnPoints = async (DTO) => {
   try {
-    // const { data } = await window.$nuxt.$axios({
-    //   path: "/getVirtualEnPoints",
-    // });
-    const { data } = await axios.post(
-      "https://api.development.agentsoncloud.com/getVirtualEndpoint"
-    );
+    const { data } = await window.$nuxt.$axios({
+      path: "/getVirtualEnPoints",
+      workspace: "",
+      gatewayRequest:true
+    });
+    // const { data } = await axios.post(
+    //   "https://api.development.agentsoncloud.com/getVirtualEndpoint"
+    // );
     return data;
   } catch (error) {
     throw error;
