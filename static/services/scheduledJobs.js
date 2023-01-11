@@ -132,14 +132,14 @@ const getFeatures = async (DTO) => {
 };
 const getVirtualEnPoints = async (DTO) => {
   try {
-    const { data } = await window.$nuxt.$axios({
-      path: "/getVirtualEnPoints",
-      workspace: "",
-      gatewayRequest:true
-    });
-    // const { data } = await axios.post(
-    //   "https://api.development.agentsoncloud.com/getVirtualEndpoint"
-    // );
+    // const { data } = await window.$nuxt.$axios({
+    //   path: "/getVirtualEnPoints",
+    //   workspace: "",
+    //   gatewayRequest:true
+    // });
+    const { data } = await axios.post(
+      "https://api.development.agentsoncloud.com/getVirtualEndpoint"
+    );
     return data;
   } catch (error) {
     throw error;
