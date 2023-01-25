@@ -48,6 +48,20 @@
                 :error-messages="errorMessages.endPoint"
               ></v-autocomplete>
             </v-col>
+            <v-col cols="3" class="py-0 mt-n3">
+              <v-checkbox
+                color="blue1"
+                v-model="once"
+                label="repeate cron once"
+              ></v-checkbox
+            ></v-col>
+            <v-col cols="3" class="py-0 mt-n3">
+              <v-checkbox
+                color="blue1"
+                v-model="isDefault"
+                label="default Template"
+              ></v-checkbox>
+            </v-col>
             <v-col cols="12" class="py-0 mt-n4">
               <v-radio-group row v-model="bodyRadio">
                 <v-radio label="keys" value="keys"></v-radio>
@@ -95,12 +109,13 @@ import { mapGetters } from "vuex";
 import {
   getFeatures,
   addscheduledCronJob,
-  getScheduledCronRecords,
+  getScheduledCronRecords,getVirtualEnPoints
 } from "../../static/services/scheduledJobs";
 import { validateInputs } from "../../static/sharedFunctions/validation";
 import keyBodyTableVue from "./KeysBodyTableUpdate.vue";
 import Repetition from "./Repetition.vue";
 import { handleSucessMsg } from "../../static/sharedFunctions/handleSucessMsg";
+import { init } from "events";
 export default {
   name: "UpdateCronDialog",
   props: ["showUpdateDialog", "id"],
@@ -115,8 +130,7 @@ export default {
   },
   data: () => ({
     name: "",
-    features: [],
-    feature: "",
+
     endPoints: [],
     endPoint: "",
     bodyRadio: "json",
@@ -127,23 +141,25 @@ export default {
     description: "",
     body: "",
     intialRepetition: "",
+    isDefault: false,
+    once: false,
   }),
   methods: {
-    async getAllFeatures() {
-      try {
-        let res = await getFeatures();
-        console.log(res, "ressssss");
-        for (let i = 0; i < res.rows.length; i++) {
-          const element = res.rows[i];
-          this.features.push({
-            id: element.id,
-            name: element.abbreviation,
-          });
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    },
+    // async getAllFeatures() {
+    //   try {
+    //     let res = await getFeatures();
+    //     console.log(res, "ressssss");
+    //     for (let i = 0; i < res.rows.length; i++) {
+    //       const element = res.rows[i];
+    //       this.features.push({
+    //         id: element.id,
+    //         name: element.abbreviation,
+    //       });
+    //     }
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // },
     async handleCreateCron() {
       try {
         // let validation :
@@ -158,27 +174,25 @@ export default {
             [this.activeLanguage]: this.description,
             [this.inactiveLanguage]: "",
           },
-          feature: this.feature,
           endPoint: this.endPoint ? this.endPoint : "cron/test",
           repetition: this.repeation,
           body: this.body,
           status: this.status.running,
+          isDefault: this.isDefault,
+          one: this.once,
         };
         let validation = validateInputs({
           name: cronBody.name[this.activeLanguage],
           description: cronBody.description[this.activeLanguage],
-          feature: cronBody.feature,
           endPoint: cronBody.endPoint,
           repeation: cronBody.repetition,
           body: this.body,
         });
         if (validation[0]) {
-          console.log("now we can create", cronBody);
-
           [res, status] = await addscheduledCronJob(cronBody);
-
           handleSucessMsg(status, "Cron Job", "created");
           this.$emit("closeDialog");
+          this.$emit("getDataAgain");
         } else {
           this.errorMessages = validation[1];
         }
@@ -210,12 +224,12 @@ export default {
     async getInitData() {
       try {
         let res = await getScheduledCronRecords({ ids: [this.id] });
-        console.log(res.rows[0], "inttttttialData");
         let intial = res.rows[0];
         this.name = intial.name[this.activeLanguage];
-        this.feature = intial.feature;
         this.endPoint = intial.endPoint;
         this.body = JSON.stringify(intial.body);
+        this.isDefault = intial?.isDefault;
+        this.once = intial?.once;
 
         // emit to children :
         // 1. repeation:
@@ -239,7 +253,7 @@ export default {
     },
   },
   mounted() {
-    this.getAllFeatures();
+    // this.getAllFeatures();
     this.getInitData();
     this.getAllVirtyualEndPoints();
   },

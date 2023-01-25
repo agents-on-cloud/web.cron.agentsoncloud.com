@@ -26,7 +26,7 @@ const deleteScheduledJob = async (DTO) => {
     //   DTO
     // );
     const { data } = await window.$nuxt.$axios({
-      path: "/cron/scheduledJob/deleteScheduledJobs",
+      path: "/cron/scheduledJob/deleteScheduledJob",
       data: DTO,
     });
 

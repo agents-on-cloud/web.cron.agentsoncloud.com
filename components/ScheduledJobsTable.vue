@@ -83,11 +83,7 @@ export default {
           value: "name.en",
           class: "blue1 white--text headers",
         },
-        {
-          text: "Feature",
-          value: `feature.name.en`,
-          class: "blue1 white--text subtitle",
-        },
+    
         {
           text: "Description",
           value: `description.en`,
@@ -208,13 +204,10 @@ export default {
     },
     showUpdateDialog(data) {
       this.showUpdateFlag = true;
-      console.log(data.id, "daaaaaaaaaaaaaata");
       this.id = data.id;
     },
     async searchKeys(data) {
-      console.log(data, "daaaaaaaaaaaaaaaaata");
       let res = await this.getScheduledJobs(data);
-      console.log(res, "daaaaaaaaaaaaaaaaata");
     },
   },
   watch: {

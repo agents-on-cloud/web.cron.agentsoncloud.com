@@ -286,6 +286,7 @@ export default {
       daysOfMonth: [],
       timesDescription: "",
       intialDesc: "",
+      timesRepeation: "",
     };
   },
   methods: {
@@ -296,13 +297,22 @@ export default {
         // time =this.hours:this.mints:this.seconds
         // date = this.month -this.dayOfMonth
         // last one days =this.days
+        let dayOfMonth;
+        if (this.repetition.dayOfMonth.length) {
+          dayOfMonth = this.repetition.dayOfMonth.map((el) => {
+            return el.key;
+          });
+        } else {
+          dayOfMonth = [];
+        }
 
-        let dayOfMonth = this.repetition.dayOfMonth.map((el) => {
-          return el.key;
-        });
         let date = `${[...this.repetition.month]}-${[...dayOfMonth]}`;
         let repeation = this.createReption(date, this.repetition.dayOfWeek);
-        repeation = `${this.timesRepeation} ${[...repeation]}`;
+        if (!this.timesRepeation) {
+          repeation = `* * * * ${[...repeation]}`;
+        } else {
+          repeation = `${this.timesRepeation} ${[...repeation]}`;
+        }
         this.$emit("repeation", {
           repeation,
           description: this.repetition.description,
@@ -435,7 +445,6 @@ export default {
     },
     handleIntialDate(date, expression) {
       try {
-        console.log(date, "daaaaaaaaaaaaaaate");
         let formatedDate = date;
 
         if (date == "*") {
@@ -696,10 +705,12 @@ export default {
     },
     "repetition.dayOfMonth"() {
       let arr = [];
-      if (this.repetition.dayOfMonth !== "*") {
+      if (this.repetition.dayOfMonth.length) {
         this.repetition.dayOfMonth.map((el) => {
           arr.push(`${el.name} `);
         });
+      } else {
+        arr = "every Month";
       }
 
       this.dayOfMonthDescription = arr;

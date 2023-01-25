@@ -20,20 +20,7 @@
             <v-col cols="12" class="py-0 mt-n9"
               ><Repetition @repeation="getRepeation" />
             </v-col>
-            <!-- <v-col cols="6" class="py-0">
-              <v-autocomplete
-                :items="features"
-                color="blue1"
-                outlined
-                v-model="feature"
-                label="Feature"
-                :item-text="`name`"
-                return-object
-                dense
-                :error-messages="errorMessages.feature"
-              ></v-autocomplete
-            ></v-col> -->
-            <v-col cols="6" class="py-0">
+            <v-col cols="5" class="py-0">
               <v-autocomplete
                 :items="endPoints"
                 color="blue1"
@@ -44,6 +31,20 @@
                 dense
                 :error-messages="errorMessages.endPoint"
               ></v-autocomplete>
+            </v-col>
+            <v-col cols="3" class="py-0 mt-n3">
+              <v-checkbox
+                color="blue1"
+                v-model="once"
+                label="repeate cron once"
+              ></v-checkbox
+            ></v-col>
+            <v-col cols="3" class="py-0 mt-n3">
+              <v-checkbox
+                color="blue1"
+                v-model="isDefault"
+                label="default Template"
+              ></v-checkbox>
             </v-col>
             <v-col cols="12" class="py-0 mt-n4">
               <v-radio-group row v-model="bodyRadio">
@@ -123,6 +124,8 @@ export default {
     repeation: "",
     description: "",
     body: "",
+    isDefault: false,
+    once: false,
   }),
   methods: {
     async getAllFeatures() {
@@ -153,12 +156,12 @@ export default {
             [this.activeLanguage]: this.description,
             [this.inactiveLanguage]: "",
           },
-          endPoint: this.endPoint
-            ? this.endPoint
-            : "http://localhost:50303/cron/scheduledJob/test",
+          endPoint: this.endPoint,
           repetition: this.repeation,
           body: JSON.parse(this.body),
           status: this.status.running,
+          once: this.once,
+          isDefault: this.isDefault,
         };
         let validation = validateInputs({
           name: cronBody.name[this.activeLanguage],
@@ -168,11 +171,11 @@ export default {
           body: this.body,
         });
         if (validation[0]) {
-          console.log("now we can create", cronBody);
           [res, status] = await addscheduledCronJob(cronBody);
           handleSucessMsg(status, "Cron Job", "created");
           this.$emit("closeDialog");
-        } else {
+          this.$emit("getDataAgain")
+                } else {
           this.errorMessages = validation[1];
         }
       } catch (error) {
