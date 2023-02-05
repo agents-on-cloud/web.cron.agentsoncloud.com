@@ -95,7 +95,7 @@
               Close
             </v-btn>
             <v-btn class="primary_search_btn" text @click="handleCreateCron">
-              CREATE
+              Update
             </v-btn>
           </div>
         </v-card-actions>
@@ -109,13 +109,15 @@ import { mapGetters } from "vuex";
 import {
   getFeatures,
   addscheduledCronJob,
-  getScheduledCronRecords,getVirtualEnPoints
+  getScheduledCronRecords,
+  getVirtualEnPoints,
 } from "../../static/services/scheduledJobs";
 import { validateInputs } from "../../static/sharedFunctions/validation";
 import keyBodyTableVue from "./KeysBodyTableUpdate.vue";
 import Repetition from "./Repetition.vue";
 import { handleSucessMsg } from "../../static/sharedFunctions/handleSucessMsg";
-import { init } from "events";
+import { updateCronJobRecord } from "../../static/services/scheduledJobs";
+
 export default {
   name: "UpdateCronDialog",
   props: ["showUpdateDialog", "id"],
@@ -130,7 +132,6 @@ export default {
   },
   data: () => ({
     name: "",
-
     endPoints: [],
     endPoint: "",
     bodyRadio: "json",
@@ -174,12 +175,13 @@ export default {
             [this.activeLanguage]: this.description,
             [this.inactiveLanguage]: "",
           },
-          endPoint: this.endPoint ? this.endPoint : "cron/test",
+          endPoint: this.endPoint,
           repetition: this.repeation,
           body: this.body,
           status: this.status.running,
           isDefault: this.isDefault,
           one: this.once,
+          id: this.id,
         };
         let validation = validateInputs({
           name: cronBody.name[this.activeLanguage],
@@ -189,8 +191,8 @@ export default {
           body: this.body,
         });
         if (validation[0]) {
-          [res, status] = await addscheduledCronJob(cronBody);
-          handleSucessMsg(status, "Cron Job", "created");
+          [res, status] = await updateCronJobRecord(cronBody);
+          handleSucessMsg(status, "Cron Job", "Updated");
           this.$emit("closeDialog");
           this.$emit("getDataAgain");
         } else {
