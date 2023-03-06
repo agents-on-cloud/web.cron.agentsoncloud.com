@@ -305,7 +305,7 @@ export default {
         } else {
           dayOfMonth = [];
         }
-
+        // handle if repetion is *** for day and day of week
         let date = `${[...this.repetition.month]}-${[...dayOfMonth]}`;
         let repeation = this.createReption(date, this.repetition.dayOfWeek);
         if (!this.timesRepeation) {
@@ -511,7 +511,6 @@ export default {
         let formatedTime;
         let description = [];
         let [splitSec, splitMin, splitH] = time.split(" ");
-
         // variables :
         let hour = "00";
         let min = "00";
@@ -526,7 +525,6 @@ export default {
 
         if (splitSec.includes("/")) {
           formatedTime = splitSec.split("/")[1];
-
           everyArr.push("every " + formatedTime + "seconds");
         }
         if (splitSec.includes("-")) {
@@ -543,7 +541,6 @@ export default {
           sec = "0";
           everyArr.push(" every " + "1" + "second");
         }
-
         if (splitMin.includes("/")) {
           formatedTime = splitMin.split("/")[1];
 
@@ -601,9 +598,6 @@ export default {
         ) {
           description.push(`at ${exactTime}`);
         }
-
-        // let description = [`at ${exactTime} ${timeFrom} ${timeTo}`, ...everyArr];
-        // console.log(description, "deeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
         return description;
       } catch (error) {
         console.log(error);
@@ -696,11 +690,15 @@ export default {
   },
   watch: {
     "repetition.dayOfWeek"() {
-      this.dayDescription = this.repetition.dayOfWeek;
+      if (this.repetition.dayOfWeek !== "*") {
+        this.dayDescription = this.repetition.dayOfWeek;
+      }
       this.repetition.description = `${this.cronMsg} on ${this.dayDescription} ${this.dayOfMonthDescription} in ${this.monthDescription}  ${this.timesDescription}`;
     },
     "repetition.month"() {
-      this.monthDescription = this.repetition.month;
+      if (this.repetition.month !== "*") {
+        this.monthDescription = this.repetition.month;
+      }
       this.repetition.description = `${this.cronMsg} on ${this.dayDescription} ${this.dayOfMonthDescription}  in ${this.monthDescription} ${this.timesDescription}`;
     },
     "repetition.dayOfMonth"() {
@@ -710,7 +708,7 @@ export default {
           arr.push(`${el.name} `);
         });
       } else {
-        arr = "every Month";
+        arr = "";
       }
 
       this.dayOfMonthDescription = arr;
