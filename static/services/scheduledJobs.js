@@ -1,12 +1,6 @@
 const axios = require("axios").default;
 const getScheduledCronRecords = async (DTO) => {
   try {
-    // console.log(DTO, "DTOOOOOOOOOOOOOOO");
-    // const { data } = await axios.post(
-    //   "http://localhost:50303/cron/scheduledJob/getScheduledJob",
-
-    //   DTO
-    // );
     const { data } = await window.$nuxt.$axios({
       path: "/cron/scheduledJob/getScheduledJob",
       data: DTO,
@@ -19,12 +13,7 @@ const getScheduledCronRecords = async (DTO) => {
 };
 const deleteScheduledJob = async (DTO) => {
   try {
-    // console.log(DTO, "DTOOOOOOOOOOOOOOO");
-    // const { data } = await axios.post(
-    //   "http://localhost:50303/cron/scheduledJob/deleteScheduledJobs",
 
-    //   DTO
-    // );
     const { data } = await window.$nuxt.$axios({
       path: "/cron/scheduledJob/deleteScheduledJob",
       data: DTO,
@@ -37,12 +26,6 @@ const deleteScheduledJob = async (DTO) => {
 };
 const getScheduledHistoryRecords = async (DTO) => {
   try {
-    // const { data } = await axios.post(
-    //   "http://localhost:50303/cron/history/getCronHistorys",
-
-    //   DTO
-    // );
-
     const { data } = await window.$nuxt.$axios({
       path: "/cron/history/getCronHistorys",
       data: DTO,
@@ -55,11 +38,7 @@ const getScheduledHistoryRecords = async (DTO) => {
 };
 const updateCronJobRecord = async (DTO) => {
   try {
-    // const { data, status } = await axios.post(
-    //   "http://localhost:50303/cron/scheduledJob/updateScheduledJob",
 
-    //   DTO
-    // );
     const { data, status } = await window.$nuxt.$axios({
       path: "/cron/scheduledJob/updateScheduledJob",
       data: DTO,
@@ -71,11 +50,7 @@ const updateCronJobRecord = async (DTO) => {
 };
 const getSettings = async (DTO) => {
   try {
-    // const { data } = await axios.post(
-    //   "http://localhost:50303/cron/setting/getSettings",
 
-    //   DTO
-    // );
     const { data } = await window.$nuxt.$axios({
       path: "/cron/setting/getSettings",
       data: DTO,
@@ -87,11 +62,6 @@ const getSettings = async (DTO) => {
 };
 const addscheduledCronJob = async (DTO) => {
   try {
-    // const { data, status } = await axios.post(
-    //   "http://localhost:50303/cron/scheduledJob/createScheduledJob",
-
-    //   DTO
-    // );
     const { data, status } = await window.$nuxt.$axios({
       path: "/cron/scheduledJob/createScheduledJob",
       data: DTO,
@@ -103,11 +73,6 @@ const addscheduledCronJob = async (DTO) => {
 };
 const changeCronStatus = async (DTO) => {
   try {
-    // const { data } = await axios.post(
-    //   "http://localhost:50303/cron/scheduledJob/changeCronStatus",
-
-    //   DTO
-    // );
     const { data } = await window.$nuxt.$axios({
       path: "/cron/scheduledJob/changeCronStatus",
       data: DTO,
@@ -132,7 +97,7 @@ const getFeatures = async (DTO) => {
 };
 const getVirtualEnPoints = async (DTO) => {
   try {
-    // const { data } = await window.$nuxt.$axios({
+      // const { data } = await window.$nuxt.$axios({
     //   path: "/getVirtualEnPoints",
     //   workspace: "",
     //   gatewayRequest:true
